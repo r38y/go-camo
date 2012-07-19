@@ -5,7 +5,6 @@ package camoproxy
 import (
 	"code.google.com/p/gorilla/mux"
 	"errors"
-	"fmt"
 	"github.com/cactus/gologit"
 	"io"
 	"net"
@@ -92,8 +91,8 @@ func (p *ProxyHandler) StatsHandler() http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			w.WriteHeader(200)
-			c, b := p.stats.GetStats()
-			fmt.Fprintf(w, "ClientsServed, BytesServed\n%d, %d\n", c, b)
+			c := p.stats.GetStats()
+			w.Write(c.Bytes())
 		})
 }
 
@@ -325,6 +324,6 @@ func New(pc ProxyConfig) (*ProxyHandler, error) {
 		allowList: allow,
 		denyList:  deny,
 		maxSize:   pc.MaxSize,
-		stats:     &proxyStats{}}, nil
+		stats:     NewProxyStats()}, nil
 }
 
