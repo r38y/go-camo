@@ -21,6 +21,8 @@ func main() {
 		HmacKey    string `short:"k" long:"key" description:"HMAC key"`
 		Encode     bool   `short:"e" long:"encode" description:"Encode a url and print result"`
 		Decode     bool   `short:"d" long:"decode" description:"Decode a url and print result"`
+		Base64     bool	  `long:"base64" description:"Use Base64 encoding for url. Only relevant for Encode."`
+		Hex        bool	  `long:"hex" description:"Use hex encoding for url. Only relevant for Encode."`
 		Prefix     string `long:"prefix" default:"" description:"Optional url prefix used by encode output"`
 	}
 
@@ -79,9 +81,23 @@ func main() {
 
 	hmacKeyBytes := []byte(config.HmacKey)
 
+	var encoder encoding.Encoder
+	var decoder encoding.Decoder
+	var pathPrefix string
+	if opts.Base64 {
+		encoder = encoding.EncodeBase64Url
+		decoder = encoding.DecodeBase64Url
+		pathPrefix = "/b"
+	}
+	if !opts.Base64 || opts.Hex {
+		encoder = encoding.EncodeHexUrl
+		decoder = encoding.DecodeHexUrl
+		pathPrefix = ""
+	}
+
 	if opts.Encode == true {
-		outUrl := encoding.EncodeUrl(&hmacKeyBytes, oUrl)
-		fmt.Println(opts.Prefix + outUrl)
+		outUrl := encoder(&hmacKeyBytes, oUrl)
+		fmt.Println(opts.Prefix + pathPrefix + outUrl)
 	}
 
 	if opts.Decode == true {
@@ -89,8 +105,19 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		comp := strings.SplitN(u.Path, "/", 3)
-		decUrl, valid := encoding.DecodeUrl(&hmacKeyBytes, comp[1], comp[2])
+		var digest, encurl string
+		if strings.HasPrefix(u.Path, "/b/") {
+			decoder = encoding.DecodeBase64Url
+			comp := strings.SplitN(u.Path, "/", 4)
+			digest = comp[2]
+			encurl = comp[3]
+		} else {
+			decoder = encoding.DecodeHexUrl
+			comp := strings.SplitN(u.Path, "/", 3)
+			digest = comp[1]
+			encurl = comp[2]
+		}
+		decUrl, valid := decoder(&hmacKeyBytes, digest, encurl)
 		if !valid {
 			log.Fatal("hmac is invalid")
 		}
