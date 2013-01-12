@@ -13,6 +13,7 @@ Changelog
 *   Inverted redirect boolean. Redirects are now followed by default, and 
     the flag `no-follow` was learned.
 *   Use new flag parsing library for nicer help and cleaner usage.
+*   Support Base64 url encoding option
 
 ## 0.0.4 2012-09-02
 

@@ -54,6 +54,8 @@ Note that it is recommended to front Go-Camo with a CDN when possible.
     need of multiple instances or additional proxying.
 *   Go-Camo builds to a static binary. This makes deploying to large numbers
     of servers a snap.
+*   Go-Camo supports a Base64 url encoding option (goal is reduction of url
+    size).
 
 ## Building
 
