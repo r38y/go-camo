@@ -9,10 +9,10 @@ import (
 	"strings"
 )
 
-type sEncoder func ([]byte) string
-type sDecoder func (string) ([]byte, error)
-type Encoder func (*[]byte, string) string
-type Decoder func (*[]byte, string, string) (string, bool)
+type sEncoder func([]byte) string
+type sDecoder func(string) ([]byte, error)
+type Encoder func(*[]byte, string) string
+type Decoder func(*[]byte, string, string) (string, bool)
 
 // DecodeUrl ensures the url is properly verified via HMAC, and then
 // decodes the hex url, returning the url (if valid) and whether the
@@ -29,10 +29,10 @@ func DecodeHexUrl(hmackey *[]byte, encdig string, encurl string) (string, bool) 
 // decodes the base64 url, returning the url (if valid) and whether the
 // HMAC was verified.
 func DecodeBase64Url(hmackey *[]byte, encdig string, encurl string) (string, bool) {
-	encoder := func (src []byte) string {
+	encoder := func(src []byte) string {
 		return strings.TrimRight(base64.URLEncoding.EncodeToString(src), "=")
 	}
-	decoder := func (s string) ([]byte, error) {
+	decoder := func(s string) ([]byte, error) {
 		return base64.URLEncoding.DecodeString(strings.TrimRight(s, "="))
 	}
 	return decodeUrl(hmackey, encoder, decoder, encdig, encurl)
@@ -66,7 +66,7 @@ func EncodeHexUrl(hmacKey *[]byte, oUrl string) string {
 // EncodeHexUrl takes an HMAC key and a url, and returns url
 // path partial consisitent of signature and base64 encoded url.
 func EncodeBase64Url(hmacKey *[]byte, oUrl string) string {
-	encoder := func (src []byte) string {
+	encoder := func(src []byte) string {
 		return strings.TrimRight(base64.URLEncoding.EncodeToString(src), "=")
 	}
 	return encodeUrl(hmacKey, encoder, oUrl)

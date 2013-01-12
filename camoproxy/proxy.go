@@ -56,7 +56,7 @@ type Proxy struct {
 type EncodingType int
 
 const (
-	HexEnc     EncodingType = iota
+	HexEnc EncodingType = iota
 	Base64Enc
 )
 
@@ -72,7 +72,7 @@ func (p *Proxy) ServiceHandler(encodingType EncodingType) http.Handler {
 		decoder = encoding.DecodeHexUrl
 	}
 
-	f := func (w http.ResponseWriter, req *http.Request) {
+	f := func(w http.ResponseWriter, req *http.Request) {
 		gologit.Debugln("Request:", req.URL)
 		if p.metrics != nil {
 			go p.metrics.AddServed()

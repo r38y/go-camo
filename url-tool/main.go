@@ -21,8 +21,8 @@ func main() {
 		HmacKey    string `short:"k" long:"key" description:"HMAC key"`
 		Encode     bool   `short:"e" long:"encode" description:"Encode a url and print result"`
 		Decode     bool   `short:"d" long:"decode" description:"Decode a url and print result"`
-		Base64     bool	  `long:"base64" description:"Use Base64 encoding for url. Only relevant for Encode."`
-		Hex        bool	  `long:"hex" description:"Use hex encoding for url. Only relevant for Encode."`
+		Base64     bool   `long:"base64" description:"Use Base64 encoding for url. Only relevant for Encode."`
+		Hex        bool   `long:"hex" description:"Use hex encoding for url. Only relevant for Encode."`
 		Prefix     string `long:"prefix" default:"" description:"Optional url prefix used by encode output"`
 	}
 
