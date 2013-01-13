@@ -83,21 +83,21 @@ func main() {
 
 	var encoder encoding.Encoder
 	var decoder encoding.Decoder
-	var pathPrefix string
+	var suffix string
 	if opts.Base64 {
 		encoder = encoding.EncodeBase64Url
 		decoder = encoding.DecodeBase64Url
-		pathPrefix = "/b"
+		suffix = "?e=base64"
 	}
 	if !opts.Base64 || opts.Hex {
 		encoder = encoding.EncodeHexUrl
 		decoder = encoding.DecodeHexUrl
-		pathPrefix = ""
+		suffix = ""
 	}
 
 	if opts.Encode == true {
 		outUrl := encoder(&hmacKeyBytes, oUrl)
-		fmt.Println(opts.Prefix + pathPrefix + outUrl)
+		fmt.Println(opts.Prefix + outUrl + suffix)
 	}
 
 	if opts.Decode == true {
@@ -105,19 +105,14 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		var digest, encurl string
-		if strings.HasPrefix(u.Path, "/b/") {
+		qs := u.Query()
+		if qs.Get("e") == "base64" {
 			decoder = encoding.DecodeBase64Url
-			comp := strings.SplitN(u.Path, "/", 4)
-			digest = comp[2]
-			encurl = comp[3]
 		} else {
 			decoder = encoding.DecodeHexUrl
-			comp := strings.SplitN(u.Path, "/", 3)
-			digest = comp[1]
-			encurl = comp[2]
 		}
-		decUrl, valid := decoder(&hmacKeyBytes, digest, encurl)
+		comp := strings.SplitN(u.Path, "/", 3)
+		decUrl, valid := decoder(&hmacKeyBytes, comp[1], comp[2])
 		if !valid {
 			log.Fatal("hmac is invalid")
 		}

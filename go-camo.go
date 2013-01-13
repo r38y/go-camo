@@ -110,11 +110,8 @@ func main() {
 
 	router := mux.NewRouter()
 	router.Handle("/favicon.ico", http.NotFoundHandler())
-	router.Handle("/{sigHash}/{encodedUrl}", proxy.ServiceHandler(camoproxy.HexEnc)).Methods("GET")
 	// hex url
-	router.Handle("/{sigHash}/{encodedUrl}", proxy.ServiceHandler(camoproxy.HexEnc)).Methods("GET")
-	// base64 url endpoint
-	router.Handle("/b/{sigHash}/{encodedUrl}", proxy.ServiceHandler(camoproxy.Base64Enc)).Methods("GET")
+	router.Handle("/{sigHash}/{encodedUrl}", proxy).Methods("GET")
 	router.HandleFunc("/", RootHandler)
 	http.Handle("/", router)
 
