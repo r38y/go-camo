@@ -3,6 +3,7 @@ package encoding
 import (
 	"crypto/hmac"
 	"crypto/sha1"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
 	"github.com/cactus/gologit"
@@ -18,37 +19,44 @@ type Decoder func(*[]byte, string, string) (string, bool)
 // decodes the hex url, returning the url (if valid) and whether the
 // HMAC was verified.
 func DecodeHexUrl(hmackey *[]byte, encdig string, encurl string) (string, bool) {
-	var encoder sEncoder
-	var decoder sDecoder
-	encoder = hex.EncodeToString
-	decoder = hex.DecodeString
-	return decodeUrl(hmackey, encoder, decoder, encdig, encurl)
+	decoder := hex.DecodeString
+	return decodeUrl(hmackey, decoder, encdig, encurl)
 }
 
 // DecodeUrl ensures the url is properly verified via HMAC, and then
 // decodes the base64 url, returning the url (if valid) and whether the
 // HMAC was verified.
 func DecodeBase64Url(hmackey *[]byte, encdig string, encurl string) (string, bool) {
-	encoder := func(src []byte) string {
-		return strings.TrimRight(base64.URLEncoding.EncodeToString(src), "=")
-	}
 	decoder := func(s string) ([]byte, error) {
-		return base64.URLEncoding.DecodeString(strings.TrimRight(s, "="))
+		if len(s) % 4 != 0 {
+			s = s + strings.Repeat("=", (4 - (len(s) % 4)))
+		}
+		return base64.URLEncoding.DecodeString(s)
 	}
-	return decodeUrl(hmackey, encoder, decoder, encdig, encurl)
+	return decodeUrl(hmackey, decoder, encdig, encurl)
 }
 
-func decodeUrl(hmackey *[]byte, encoder sEncoder, decoder sDecoder, encdig string, encurl string) (surl string, valid bool) {
+// DecodeUrl ensures the url is properly verified via HMAC,
+// decodes the url with the provided decoder, returning the url (if valid) and
+// whether the HMAC was verified.
+func decodeUrl(hmackey *[]byte, decoder sDecoder, encdig string, encurl string) (surl string, valid bool) {
 	urlBytes, err := decoder(encurl)
 	if err != nil {
-		gologit.Debugln("Bad Base64 Decode", encurl)
+		gologit.Debugln("Bad URL decode", encurl)
 		return
 	}
+	inMacSum, err := decoder(encdig)
+	if err != nil {
+		gologit.Debugln("Bad digest decode", encdig, err)
+		return
+	}
+
 	mac := hmac.New(sha1.New, *hmackey)
 	mac.Write(urlBytes)
-	macSum := encoder(mac.Sum(nil))
-	if macSum != encdig {
-		gologit.Debugf("Bad signature: %s != %s\n", macSum, encdig)
+	macSum := mac.Sum(nil)
+
+	if subtle.ConstantTimeCompare(macSum, inMacSum) != 1 {
+		gologit.Debugf("Bad signature: %x != %x\n", macSum, inMacSum)
 		return
 	}
 	surl = string(urlBytes)

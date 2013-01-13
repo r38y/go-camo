@@ -64,9 +64,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var decoder encoding.Decoder
-	qs := req.URL.Query()
-	e := qs.Get("e")
-	if e == "base64" {
+	if req.URL.Query().Get("e") == "base64" {
 		decoder = encoding.DecodeBase64Url
 	} else {
 		decoder = encoding.DecodeHexUrl
